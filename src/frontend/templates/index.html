@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RepoMind - Repository Exploration and Query Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>RepoMind</h1>
+            <p class="tagline">Repository Exploration and Query Assistant</p>
+            <nav>
+                <ul>
+                    <li><a href="/" class="active">Home</a></li>
+                    <li><a href="/repos">Repositories</a></li>
+                    <li><a href="/upload">Upload</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Understand codebases with the power of AI</h2>
+            <p>RepoMind helps you explore and query code repositories using natural language, making it easier to understand unfamiliar code.</p>
+            <div class="cta-buttons">
+                <a href="/upload" class="btn btn-primary">Upload Repository</a>
+                <a href="/repos" class="btn btn-secondary">View Repositories</a>
+            </div>
+        </section>
+
+        <section class="features">
+            <h2>Core Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3>Repository Ingestion</h3>
+                    <p>Load repositories from GitHub URLs, ZIP files, or local paths with ease.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Code Analysis</h3>
+                    <p>Automatic language detection, function extraction, and file summarization.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Natural Language Queries</h3>
+                    <p>Ask questions about the codebase and get intelligent responses.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Code Generation</h3>
+                    <p>Generate code snippets based on repository context.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="how-it-works">
+            <h2>How It Works</h2>
+            <ol class="steps">
+                <li>
+                    <h3>Step 1: Upload a Repository</h3>
+                    <p>Provide a GitHub URL, upload a ZIP file, or select a local directory.</p>
+                </li>
+                <li>
+                    <h3>Step 2: Wait for Analysis</h3>
+                    <p>RepoMind analyzes the repository structure, extracts functions, and generates summaries.</p>
+                </li>
+                <li>
+                    <h3>Step 3: Ask Questions</h3>
+                    <p>Use natural language to query the codebase about its functionality, structure, and more.</p>
+                </li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 RepoMind. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+</body>
+</html> 

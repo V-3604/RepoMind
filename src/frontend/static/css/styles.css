@@ -1,0 +1,356 @@
+/* Global Styles */
+:root {
+    --primary-color: #4a6fdc;
+    --secondary-color: #3c3c3c;
+    --accent-color: #61dafb;
+    --background-color: #f5f5f5;
+    --text-color: #333;
+    --light-gray: #e0e0e0;
+    --dark-gray: #757575;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #f44336;
+    --border-radius: 4px;
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Button Styles */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    text-decoration: none;
+}
+
+.btn:hover {
+    opacity: 0.9;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Header Styles */
+header {
+    background-color: white;
+    box-shadow: var(--box-shadow);
+    padding: 1rem 0;
+}
+
+header .container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header h1 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+}
+
+header .tagline {
+    color: var(--dark-gray);
+    font-size: 1rem;
+    margin-left: 1rem;
+}
+
+header nav {
+    margin-left: auto;
+}
+
+header nav ul {
+    display: flex;
+    list-style: none;
+}
+
+header nav li {
+    margin-left: 1.5rem;
+}
+
+header nav a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+header nav a:hover, 
+header nav a.active {
+    color: var(--primary-color);
+}
+
+/* Hero Section */
+.hero {
+    padding: 4rem 0;
+    text-align: center;
+}
+
+.hero h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--secondary-color);
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: var(--dark-gray);
+    max-width: 800px;
+    margin: 0 auto 2rem;
+}
+
+.cta-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+/* Features Section */
+.features {
+    padding: 4rem 0;
+    background-color: white;
+}
+
+.features h2 {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+/* How It Works */
+.how-it-works {
+    padding: 4rem 0;
+}
+
+.how-it-works h2 {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.steps {
+    max-width: 800px;
+    margin: 0 auto;
+    list-style-position: inside;
+}
+
+.steps li {
+    margin-bottom: 2rem;
+    padding-left: 2rem;
+    position: relative;
+}
+
+.steps h3 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+input[type="text"],
+input[type="file"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+/* Repository List */
+.repo-list {
+    margin: 2rem 0;
+}
+
+.repo-card {
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--box-shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.repo-card h3 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.repo-card .meta {
+    color: var(--dark-gray);
+    font-size: 0.9rem;
+}
+
+/* Chat Interface */
+.chat-container {
+    display: flex;
+    height: calc(100vh - 200px);
+    margin-top: 2rem;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 1.5rem;
+    background: white;
+    overflow-y: auto;
+}
+
+.message {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    max-width: 80%;
+}
+
+.user-message {
+    background-color: var(--primary-color);
+    color: white;
+    margin-left: auto;
+}
+
+.system-message {
+    background-color: var(--light-gray);
+}
+
+.chat-input-container {
+    padding: 1rem;
+    background: white;
+    border-top: 1px solid var(--light-gray);
+    display: flex;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--light-gray);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    margin-right: 1rem;
+}
+
+/* Footer Styles */
+footer {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 2rem 0;
+    margin-top: 4rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    header .container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    header nav {
+        margin-left: 0;
+        margin-top: 1rem;
+        width: 100%;
+    }
+    
+    header nav ul {
+        flex-direction: column;
+    }
+    
+    header nav li {
+        margin: 0.5rem 0;
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .chat-container {
+        flex-direction: column;
+    }
+} 

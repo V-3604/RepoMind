@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat - RepoMind</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <style>
+        /* Additional chat-specific styles */
+        .chat-section {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 200px);
+        }
+        
+        .repo-info-bar {
+            background-color: var(--light-gray);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .repo-info-bar h3 {
+            margin: 0;
+        }
+        
+        .code-block {
+            position: relative;
+        }
+        
+        .code-block pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            overflow-x: auto;
+        }
+        
+        .code-block .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 3px;
+            padding: 0.25rem 0.5rem;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .chat-form {
+            padding: 1rem;
+            background-color: white;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            align-items: center;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>RepoMind</h1>
+            <p class="tagline">Repository Exploration and Query Assistant</p>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/repos" class="active">Repositories</a></li>
+                    <li><a href="/upload">Upload</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="chat-section">
+            <div class="repo-info-bar">
+                <h3 id="repo-name">Repository Chat</h3>
+                <a href="/repos/{{ repo_id }}" class="btn btn-outline">Repository Details</a>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message system-message">
+                        <p>Welcome to the RepoMind chat interface! I've analyzed this repository and I'm ready to help you understand it.</p>
+                        <p>Here are some things you can ask me:</p>
+                        <ul>
+                            <li>Explain the overall structure of this repository</li>
+                            <li>What does the file X do?</li>
+                            <li>Show me functions related to Y</li>
+                            <li>How does feature Z work?</li>
+                            <li>Generate code for implementing a specific functionality</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <form id="chat-form" class="chat-form">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Ask a question about the repository..." autocomplete="off">
+                    <button type="submit" class="btn btn-primary">Send</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script>
+        // Get repository ID from URL
+        const repoId = '{{ repo_id }}';
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Fetch repository information
+            try {
+                const response = await fetch(`/api/repos/${repoId}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch repository information');
+                }
+                
+                const repo = await response.json();
+                
+                // Update repository name
+                document.getElementById('repo-name').textContent = repo.name;
+                
+                // Fetch conversation history
+                const historyResponse = await fetch(`/api/repos/${repoId}/queries`);
+                if (historyResponse.ok) {
+                    const history = await historyResponse.json();
+                    
+                    if (history.length > 0) {
+                        const chatMessages = document.getElementById('chat-messages');
+                        chatMessages.innerHTML = '';
+                        
+                        // Add the welcome message
+                        const welcomeMessage = document.createElement('div');
+                        welcomeMessage.className = 'message system-message';
+                        welcomeMessage.innerHTML = `
+                            <p>Welcome back! I'm here to help you understand the ${repo.name} repository.</p>
+                            <p>You can continue our conversation or start a new topic.</p>
+                        `;
+                        chatMessages.appendChild(welcomeMessage);
+                        
+                        // Add previous conversations (limit to last 5)
+                        const recentQueries = history.slice(0, 5);
+                        recentQueries.forEach(query => {
+                            // Add user question
+                            const userMessage = document.createElement('div');
+                            userMessage.className = 'message user-message';
+                            userMessage.textContent = query.query;
+                            chatMessages.appendChild(userMessage);
+                            
+                            // Add system response
+                            const systemMessage = document.createElement('div');
+                            systemMessage.className = 'message system-message';
+                            systemMessage.textContent = query.response.text;
+                            chatMessages.appendChild(systemMessage);
+                            
+                            // Add code block if present
+                            if (query.response.code) {
+                                addCodeBlock(query.response.code);
+                            }
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error initializing chat:', error);
+            }
+        });
+        
+        // Function to copy code to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    // Success message
+                    const copyBtn = document.activeElement;
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                    }, 2000);
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                });
+        }
+        
+        // Function to add code block with copy button
+        function addCodeBlock(code) {
+            const chatMessages = document.getElementById('chat-messages');
+            
+            const codeDiv = document.createElement('div');
+            codeDiv.className = 'message system-message code-block';
+            
+            const pre = document.createElement('pre');
+            const codeElement = document.createElement('code');
+            codeElement.textContent = code;
+            
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-btn';
+            copyBtn.textContent = 'Copy';
+            copyBtn.onclick = function() { copyToClipboard(code); };
+            
+            pre.appendChild(codeElement);
+            codeDiv.appendChild(pre);
+            codeDiv.appendChild(copyBtn);
+            
+            chatMessages.appendChild(codeDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File View - RepoMind</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+    <!-- Highlight.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <style>
+        .file-header {
+            background-color: var(--light-gray);
+            padding: 1rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-path {
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .file-content {
+            border: 1px solid var(--light-gray);
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .file-content pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            counter-reset: line;
+        }
+        
+        .file-content pre code {
+            padding: 0;
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+        }
+        
+        .line-numbers {
+            padding: 1rem 0.5rem;
+            text-align: right;
+            color: #aaa;
+            border-right: 1px solid var(--light-gray);
+            user-select: none;
+        }
+        
+        .code-container {
+            display: flex;
+        }
+        
+        .line-numbers span {
+            display: block;
+            counter-increment: line;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .line-numbers span::before {
+            content: counter(line);
+            color: #aaa;
+        }
+        
+        .file-info {
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-color-light);
+        }
+        
+        .file-info span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .file-info svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .file-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .file-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>RepoMind</h1>
+            <p class="tagline">Repository Exploration and Query Assistant</p>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/repos" class="active">Repositories</a></li>
+                    <li><a href="/upload">Upload</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="file-info">
+            <a href="/repos/{{ repo_id }}" class="btn btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Repository
+            </a>
+            
+            <span id="file-size">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Size: <span id="size-value">0 KB</span>
+            </span>
+            
+            <span id="file-lines">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="17" y1="10" x2="3" y2="10"></line>
+                    <line x1="21" y1="6" x2="3" y2="6"></line>
+                    <line x1="21" y1="14" x2="3" y2="14"></line>
+                    <line x1="17" y1="18" x2="3" y2="18"></line>
+                </svg>
+                Lines: <span id="lines-value">0</span>
+            </span>
+            
+            <span id="file-language">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                Language: <span id="language-value">Unknown</span>
+            </span>
+        </div>
+        
+        <div class="file-header">
+            <h3 class="file-path" id="file-path">Loading file...</h3>
+            <div class="file-actions">
+                <button id="btn-analyze" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                    </svg>
+                    Analyze
+                </button>
+                <button id="btn-copy" class="btn btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy
+                </button>
+            </div>
+        </div>
+        
+        <div class="file-content">
+            <div class="code-container">
+                <div class="line-numbers" id="line-numbers"></div>
+                <pre><code id="code-content">Loading content...</code></pre>
+            </div>
+        </div>
+        
+        <div id="analysis-container" style="margin-top: 2rem; display: none;">
+            <h3>File Analysis</h3>
+            <div class="analysis-content" id="analysis-content">
+                <div class="loading">Analyzing file...</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script>
+        // Get file path from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const filePath = urlParams.get('path');
+        const repoId = '{{ repo_id }}';
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Set file path in UI
+            document.getElementById('file-path').textContent = filePath;
+            
+            // Fetch file content
+            try {
+                const response = await fetch(`/api/repos/${repoId}/files?path=${encodeURIComponent(filePath)}`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch file content');
+                }
+                
+                const fileData = await response.json();
+                
+                // Update file metadata
+                document.getElementById('size-value').textContent = formatBytes(fileData.size_bytes);
+                document.getElementById('lines-value').textContent = fileData.line_count;
+                document.getElementById('language-value').textContent = fileData.language || 'Plain Text';
+                
+                // Update file content
+                const codeContent = document.getElementById('code-content');
+                codeContent.textContent = fileData.content;
+                
+                // Detect language automatically
+                const languageClass = fileData.language ? fileData.language.toLowerCase() : '';
+                if (languageClass) {
+                    codeContent.classList.add(languageClass);
+                }
+                
+                // Apply syntax highlighting
+                hljs.highlightElement(codeContent);
+                
+                // Generate line numbers
+                const lineCount = fileData.content.split('\n').length;
+                const lineNumbers = document.getElementById('line-numbers');
+                lineNumbers.innerHTML = '';
+                
+                for (let i = 0; i < lineCount; i++) {
+                    const span = document.createElement('span');
+                    lineNumbers.appendChild(span);
+                }
+                
+                // Setup copy button
+                document.getElementById('btn-copy').addEventListener('click', function() {
+                    navigator.clipboard.writeText(fileData.content)
+                        .then(() => {
+                            const copyBtn = document.getElementById('btn-copy');
+                            const originalHTML = copyBtn.innerHTML;
+                            copyBtn.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Copied!
+                            `;
+                            setTimeout(() => {
+                                copyBtn.innerHTML = originalHTML;
+                            }, 2000);
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy text: ', err);
+                        });
+                });
+                
+                // Setup analyze button
+                document.getElementById('btn-analyze').addEventListener('click', async function() {
+                    const analysisContainer = document.getElementById('analysis-container');
+                    const analysisContent = document.getElementById('analysis-content');
+                    
+                    // Show analysis container
+                    analysisContainer.style.display = 'block';
+                    analysisContent.innerHTML = '<div class="loading">Analyzing file...</div>';
+                    
+                    try {
+                        // Call API to analyze file
+                        const analysisResponse = await fetch(`/api/repos/${repoId}/analyze`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                file_path: filePath,
+                                query: "Analyze this file and explain its purpose, key functions, and how it fits into the overall project."
+                            })
+                        });
+                        
+                        if (!analysisResponse.ok) {
+                            throw new Error('Failed to analyze file');
+                        }
+                        
+                        const analysisData = await analysisResponse.json();
+                        
+                        // Display analysis results
+                        analysisContent.innerHTML = `
+                            <div class="analysis-summary">
+                                <h4>Summary</h4>
+                                <p>${analysisData.summary}</p>
+                            </div>
+                            ${analysisData.functions && analysisData.functions.length > 0 ? `
+                                <div class="analysis-functions">
+                                    <h4>Key Functions/Components</h4>
+                                    <ul>
+                                        ${analysisData.functions.map(func => `
+                                            <li>
+                                                <strong>${func.name}</strong>
+                                                <p>${func.description}</p>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            ${analysisData.recommendations ? `
+                                <div class="analysis-recommendations">
+                                    <h4>Recommendations</h4>
+                                    <p>${analysisData.recommendations}</p>
+                                </div>
+                            ` : ''}
+                        `;
+                    } catch (error) {
+                        console.error('Error analyzing file:', error);
+                        analysisContent.innerHTML = `
+                            <div class="error-message">
+                                <p>Failed to analyze file. Please try again later.</p>
+                            </div>
+                        `;
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading file:', error);
+                document.getElementById('code-content').textContent = 'Failed to load file content. Please try again later.';
+            }
+        });
+        
+        // Helper function to format bytes
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html> 
