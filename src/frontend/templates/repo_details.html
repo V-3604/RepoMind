@@ -3,107 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repository Details - RepoMind</title>
+    <title>{{ repo.name }} - RepoMind</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
     <style>
-        .repo-header {
-            background-color: var(--primary-color-light);
-            padding: 2rem 0;
-            margin-bottom: 2rem;
-            border-radius: var(--border-radius);
-        }
-        
-        .repo-header h2 {
-            margin: 0;
-            color: var(--primary-color-dark);
-        }
-        
-        .repo-meta {
-            margin-top: 0.5rem;
-            color: var(--text-color-light);
+        .repo-details-container {
             display: flex;
-            gap: 1.5rem;
+            flex-direction: column;
+            gap: 2rem;
+            margin-top: 2rem;
         }
         
-        .repo-meta span {
+        .metadata {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1rem 0;
         }
         
-        .file-tree {
+        .badge {
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        
+        .badge-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .actions {
+            margin: 1.5rem 0;
+        }
+        
+        .repo-overview-section, .repo-structure-section, .repo-components-section {
             background-color: white;
-            border: 1px solid var(--light-gray);
-            border-radius: var(--border-radius);
-            padding: 1rem;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
-        .file-tree ul {
-            list-style: none;
+        .overview-content, .structure-content, .components-content {
+            margin-top: 1rem;
+        }
+        
+        .component-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .component-item:last-child {
+            border-bottom: none;
+        }
+        
+        .files-list {
+            margin-top: 0.5rem;
             padding-left: 1.5rem;
         }
         
-        .file-tree > ul {
-            padding-left: 0;
-        }
-        
-        .file-tree li {
-            margin: 0.5rem 0;
-        }
-        
-        .file-tree details {
-            margin-bottom: 0.5rem;
-        }
-        
-        .file-tree summary {
-            cursor: pointer;
-            font-weight: 500;
-        }
-        
-        .file-tree summary:hover {
-            color: var(--primary-color);
-        }
-        
-        .file-tree a {
-            color: var(--text-color);
-            text-decoration: none;
-            display: inline-block;
-            padding: 0.25rem 0;
-        }
-        
-        .file-tree a:hover {
-            color: var(--primary-color);
-        }
-        
-        .file-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .file-icon {
-            width: 16px;
-            height: 16px;
-        }
-        
-        .repo-summary {
-            background-color: white;
-            border: 1px solid var(--light-gray);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 2rem;
-        }
-        
-        @media (max-width: 768px) {
-            .two-column {
-                grid-template-columns: 1fr;
-            }
+        .files-list li {
+            margin-bottom: 0.25rem;
         }
     </style>
 </head>
@@ -123,258 +84,261 @@
     </header>
 
     <main class="container">
-        <div class="repo-header">
-            <div class="container">
-                <h2 id="repo-name">Repository Details</h2>
-                <div class="repo-meta">
-                    <span id="repo-type"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg> GitHub</span>
-                    <span id="repo-date"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Added on Jan 1, 2023</span>
-                    <span id="repo-size"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> 2.3 MB</span>
-                </div>
-                <div class="button-group" style="margin-top: 1.5rem;">
-                    <a href="/chat/{{ repo_id }}" class="btn btn-primary">Chat with Repository</a>
-                    <button id="delete-repo" class="btn btn-danger">Delete Repository</button>
-                </div>
-            </div>
+        <input type="hidden" id="repository-id" value="{{ repo_id }}">
+
+        <h1>{{ repo.name }}</h1>
+
+        <div class="metadata">
+            <span class="badge badge-secondary">{{ repo.source_type or repo.type or "Unknown source" }}</span>
+            
+            <span class="date">Added on {{ repo.created_at or "Unknown date" }}</span>
+            
+            <span class="size">{{ repo.size_bytes|default("Size unknown") }}</span>
         </div>
-        
-        <div class="repo-summary">
-            <h3>Repository Overview</h3>
-            <p id="repo-description">Loading repository description...</p>
+
+        <div class="actions">
+            <a href="/chat/{{ repo_id }}" class="btn btn-primary">Chat with Repository</a>
+            <button class="btn btn-danger" onclick="confirmDelete('{{ repo_id }}')">Delete Repository</button>
         </div>
-        
-        <div class="two-column">
-            <div>
-                <h3>Repository Structure</h3>
-                <div class="file-tree" id="file-tree">
-                    <div class="loading">Loading file structure...</div>
+
+        <div class="repo-details-container">
+            <div class="repo-overview-section">
+                <h2>Repository Overview</h2>
+                <div class="overview-content">
+                    {% if repo.summary %}
+                    <p>{{ repo.summary }}</p>
+                    {% else %}
+                    <p>No description available.</p>
+                    {% endif %}
                 </div>
             </div>
             
-            <div>
-                <h3>Key Components</h3>
-                <div class="key-components" id="key-components">
-                    <div class="loading">Analyzing repository components...</div>
+            <div class="repo-structure-section">
+                <h2>Repository Structure</h2>
+                <div id="file-structure" class="structure-content">
+                    <p>Loading file structure...</p>
+                </div>
+            </div>
+            
+            <div class="repo-components-section">
+                <h2>Key Components</h2>
+                <div id="key-components" class="components-content">
+                    <p>Loading key components...</p>
                 </div>
             </div>
         </div>
-    </main>
 
-    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
-    <script>
-        // Get repository ID from URL
-        const repoId = '{{ repo_id }}';
-        
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Fetch repository information
+        <script src="{{ url_for('static', path='/js/file_structure.js') }}"></script>
+        <script>
+        // Function to confirm repository deletion
+        function confirmDelete(repoId) {
+            if (confirm('Are you sure you want to delete this repository? This action cannot be undone.')) {
+                fetch(`/api/repos/${repoId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (response.ok) {
+                        window.location.href = '/repos';
+                    } else {
+                        alert('Failed to delete repository');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting repository:', error);
+                    alert('Failed to delete repository');
+                });
+            }
+        }
+
+        // Load key components
+        async function loadKeyComponents() {
             try {
-                const response = await fetch(`/api/repos/${repoId}`);
+                const response = await fetch('/api/repos/{{ repo_id }}/components');
                 if (!response.ok) {
-                    throw new Error('Failed to fetch repository information');
+                    throw new Error('Failed to load key components');
                 }
                 
-                const repo = await response.json();
+                const data = await response.json();
+                const componentsElement = document.getElementById('key-components');
                 
-                // Update repository information in the UI
-                document.getElementById('repo-name').textContent = repo.name;
-                document.getElementById('repo-type').innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg> ${repo.source_type}`;
-                
-                const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-                const formattedDate = new Date(repo.added_date).toLocaleDateString('en-US', dateOptions);
-                document.getElementById('repo-date').innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg> Added on ${formattedDate}`;
-                
-                document.getElementById('repo-size').innerHTML = `
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg> ${formatBytes(repo.size_bytes)}`;
-                
-                // Update repository description
-                document.getElementById('repo-description').textContent = repo.description || 'No description available.';
-                
-                // Fetch file structure
-                const structureResponse = await fetch(`/api/repos/${repoId}/structure`);
-                if (structureResponse.ok) {
-                    const structure = await structureResponse.json();
-                    renderFileTree(structure);
-                } else {
-                    document.getElementById('file-tree').innerHTML = '<p>Failed to load file structure.</p>';
-                }
-                
-                // Fetch key components
-                const componentsResponse = await fetch(`/api/repos/${repoId}/components`);
-                if (componentsResponse.ok) {
-                    const components = await componentsResponse.json();
-                    renderKeyComponents(components);
-                } else {
-                    document.getElementById('key-components').innerHTML = '<p>Failed to load key components.</p>';
-                }
-                
-                // Setup delete button
-                document.getElementById('delete-repo').addEventListener('click', async function() {
-                    if (confirm('Are you sure you want to delete this repository? This action cannot be undone.')) {
-                        try {
-                            const deleteResponse = await fetch(`/api/repos/${repoId}`, {
-                                method: 'DELETE'
+                if (data && data.length > 0) {
+                    componentsElement.innerHTML = '';
+                    
+                    data.forEach(component => {
+                        const componentDiv = document.createElement('div');
+                        componentDiv.className = 'component-item';
+                        
+                        const header = document.createElement('h3');
+                        header.textContent = component.name;
+                        componentDiv.appendChild(header);
+                        
+                        const description = document.createElement('p');
+                        description.textContent = component.description || 'No description available';
+                        componentDiv.appendChild(description);
+                        
+                        if (component.files && component.files.length > 0) {
+                            const filesList = document.createElement('ul');
+                            filesList.className = 'files-list';
+                            
+                            component.files.forEach(file => {
+                                const listItem = document.createElement('li');
+                                const fileLink = document.createElement('a');
+                                // Use the proper repo_id from the template, not repo.id
+                                fileLink.href = `/repos/{{ repo_id }}/file?path=${encodeURIComponent(file.path)}`;
+                                fileLink.textContent = file.path;
+                                
+                                listItem.appendChild(fileLink);
+                                filesList.appendChild(listItem);
                             });
                             
-                            if (deleteResponse.ok) {
-                                alert('Repository deleted successfully');
-                                window.location.href = '/repos';
-                            } else {
-                                alert('Failed to delete repository');
-                            }
-                        } catch (error) {
-                            console.error('Error deleting repository:', error);
-                            alert('An error occurred while deleting the repository');
+                            componentDiv.appendChild(filesList);
                         }
-                    }
-                });
-                
+                        
+                        componentsElement.appendChild(componentDiv);
+                    });
+                } else {
+                    componentsElement.innerHTML = '<p>No key components identified.</p>';
+                }
             } catch (error) {
-                console.error('Error initializing repository details:', error);
-                alert('Failed to load repository details');
+                console.error('Error loading key components:', error);
+                document.getElementById('key-components').innerHTML = '<p>Error loading key components. Please try again later.</p>';
             }
-        });
-        
-        // Helper function to format bytes
-        function formatBytes(bytes, decimals = 2) {
-            if (bytes === 0) return '0 Bytes';
-            
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-            
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
-        
-        // Function to render file tree
-        function renderFileTree(structure) {
-            const fileTreeElem = document.getElementById('file-tree');
-            fileTreeElem.innerHTML = '';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load key components
+            loadKeyComponents();
             
-            const rootUl = document.createElement('ul');
-            fileTreeElem.appendChild(rootUl);
+            // Update date displays
+            document.querySelectorAll('.date').forEach(element => {
+                const dateText = element.textContent.replace('Added on ', '').trim();
+                if (dateText && !dateText.includes('Unknown')) {
+                    element.textContent = 'Added on ' + formatDate(dateText);
+                }
+            });
             
-            // Generate file tree recursively
-            function buildTree(parent, items) {
-                for (const item of items) {
-                    const li = document.createElement('li');
-                    
-                    if (item.type === 'directory') {
-                        const details = document.createElement('details');
-                        details.open = item.path === ''; // Open root by default
-                        
-                        const summary = document.createElement('summary');
-                        const fileItem = document.createElement('div');
-                        fileItem.className = 'file-item';
-                        
-                        // Folder icon
-                        fileItem.innerHTML = `
-                            <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                            </svg>
-                        `;
-                        
-                        const folderName = document.createElement('span');
-                        folderName.textContent = item.name || 'Root';
-                        fileItem.appendChild(folderName);
-                        
-                        summary.appendChild(fileItem);
-                        details.appendChild(summary);
-                        
-                        const childUl = document.createElement('ul');
-                        details.appendChild(childUl);
-                        
-                        li.appendChild(details);
-                        parent.appendChild(li);
-                        
-                        // Recursively build tree for child items
-                        if (item.children && item.children.length > 0) {
-                            buildTree(childUl, item.children);
+            // Update size displays
+            document.querySelectorAll('.size').forEach(element => {
+                const sizeText = element.textContent.trim();
+                if (!sizeText.includes('unknown')) {
+                    const sizeMatch = sizeText.match(/(\d+)/);
+                    if (sizeMatch && sizeMatch[1]) {
+                        const size = parseInt(sizeMatch[1]);
+                        if (!isNaN(size)) {
+                            element.textContent = formatSize(size);
                         }
-                    } else {
-                        // File item
-                        const fileLink = document.createElement('a');
-                        fileLink.href = `/repos/${repoId}/file?path=${encodeURIComponent(item.path)}`;
-                        fileLink.className = 'file-item';
-                        
-                        // File icon
-                        fileLink.innerHTML = `
-                            <svg class="file-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                        `;
-                        
-                        const fileName = document.createElement('span');
-                        fileName.textContent = item.name;
-                        fileLink.appendChild(fileName);
-                        
-                        li.appendChild(fileLink);
-                        parent.appendChild(li);
                     }
                 }
+            });
+        });
+
+        // Helper function to format dates
+        function formatDate(dateString) {
+            if (!dateString || dateString.includes('Unknown')) return "Unknown date";
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return "Unknown date";
+                }
+                return date.toLocaleDateString();
+            } catch (e) {
+                return "Unknown date";
+            }
+        }
+
+        // Helper function to format file sizes
+        function formatSize(size) {
+            if (size === undefined || size === null || isNaN(size)) {
+                return "Unknown size";
             }
             
-            buildTree(rootUl, [structure]);
+            if (size < 1024) {
+                return `${size} bytes`;
+            } else if (size < 1024 * 1024) {
+                return `${(size / 1024).toFixed(1)} KB`;
+            } else {
+                return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+            }
+        }
+        </script>
+    </main>
+
+    <script>
+        // Format dates function
+        function formatDate(dateString) {
+            if (!dateString || dateString.includes('Unknown')) {
+                return "Unknown date";
+            }
+            
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return "Unknown date";
+                }
+                // Use a more user-friendly format
+                const options = { year: 'numeric', month: 'short', day: 'numeric' };
+                return date.toLocaleDateString(undefined, options);
+            } catch (e) {
+                console.error("Error formatting date:", e);
+                return "Unknown date";
+            }
         }
         
-        // Function to render key components
-        function renderKeyComponents(components) {
-            const keyComponentsElem = document.getElementById('key-components');
-            keyComponentsElem.innerHTML = '';
-            
-            if (!components || components.length === 0) {
-                keyComponentsElem.innerHTML = '<p>No key components identified.</p>';
-                return;
+        // Format file sizes
+        function formatSize(size) {
+            if (size === undefined || size === null || isNaN(size)) {
+                return "Unknown size";
             }
             
-            for (const component of components) {
-                const componentDiv = document.createElement('div');
-                componentDiv.className = 'component-item';
-                componentDiv.style.marginBottom = '1.5rem';
-                
-                const componentTitle = document.createElement('h4');
-                componentTitle.textContent = component.name;
-                componentTitle.style.marginBottom = '0.5rem';
-                
-                const componentDesc = document.createElement('p');
-                componentDesc.textContent = component.description;
-                
-                const filesList = document.createElement('ul');
-                filesList.style.marginTop = '0.5rem';
-                
-                for (const file of component.files) {
-                    const fileItem = document.createElement('li');
-                    
-                    const fileLink = document.createElement('a');
-                    fileLink.href = `/repos/${repoId}/file?path=${encodeURIComponent(file.path)}`;
-                    fileLink.textContent = file.path;
-                    
-                    fileItem.appendChild(fileLink);
-                    filesList.appendChild(fileItem);
-                }
-                
-                componentDiv.appendChild(componentTitle);
-                componentDiv.appendChild(componentDesc);
-                componentDiv.appendChild(filesList);
-                
-                keyComponentsElem.appendChild(componentDiv);
+            if (size < 1024) {
+                return `${size} bytes`;
+            } else if (size < 1024 * 1024) {
+                return `${(size / 1024).toFixed(1)} KB`;
+            } else {
+                return `${(size / (1024 * 1024)).toFixed(1)} MB`;
             }
         }
-    </script>
+        
+        // Update dates on the page
+        function updateDates() {
+            document.querySelectorAll('.date').forEach(element => {
+                const dateText = element.textContent.replace('Added on ', '').trim();
+                if (dateText && !dateText.includes('Unknown')) {
+                    const formattedDate = formatDate(dateText);
+                    element.textContent = 'Added on ' + formattedDate;
+                }
+            });
+        }
+        
+        // Update sizes on the page
+        function updateSizes() {
+            document.querySelectorAll('.size').forEach(element => {
+                const sizeText = element.textContent.trim();
+                if (!sizeText.includes('unknown') && !sizeText.includes('Unknown')) {
+                    const sizeMatch = sizeText.match(/(\d+)/);
+                    if (sizeMatch && sizeMatch[1]) {
+                        const size = parseInt(sizeMatch[1]);
+                        if (!isNaN(size)) {
+                            element.textContent = formatSize(size);
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Call these functions when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDates();
+            updateSizes();
+        });
+        </script>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 RepoMind - Repository Exploration and Query Assistant</p>
+        </div>
+    </footer>
 </body>
-</html> 
+</html>

@@ -12,15 +12,16 @@ from src.agents.llm_client import LLMClient
 class CodeSummarizer:
     """Summarizes code files and repositories."""
     
-    def __init__(self, llm_client: LLMClient):
+    def __init__(self, db_client=None):
         """
         Initialize the code summarizer.
         
         Args:
-            llm_client: Instance of LLMClient for generating summaries
+            db_client: Optional database client
         """
+        self.db_client = db_client
         self.logger = logging.getLogger(__name__)
-        self.llm_client = llm_client
+        self.llm_client = LLMClient()
         
         # Templates for LLM prompts
         self.file_summary_template = """
@@ -65,54 +66,51 @@ class CodeSummarizer:
         Repository Summary:
         """
     
-    def summarize_file(self, file_data: Dict[str, Any]) -> str:
+    def summarize_file(self, file_path: str, content: str, language: str, 
+                      functions: List[Dict] = None) -> str:
         """
         Generate a summary for a code file.
         
         Args:
-            file_data: Parsed file data
+            file_path: Path to the file
+            content: File content
+            language: Programming language
+            functions: Optional list of functions in the file
             
         Returns:
-            str: File summary
+            str: Summary text
         """
         try:
-            # Extract relevant information for the prompt
-            file_path = file_data["path"]
-            language = file_data["language"]
-            functions = file_data["functions"]
-            content = file_data.get("content", "")
+            # Prepare prompt for LLM
+            prompt = f"""
+            Summarize the following {language} code file:
             
-            # Take only the first 10K characters of content to fit in token limits
-            if len(content) > 10000:
-                content = content[:10000] + "...[truncated]"
+            File path: {file_path}
             
-            # Get function names
-            function_names = [f["name"] for f in functions]
+            ```{language}
+            {content[:4000]}  # Truncate long files
+            ```
             
-            # Format the prompt
-            prompt = self.file_summary_template.format(
-                file_path=file_path,
-                language=language,
-                function_count=len(functions),
-                function_names=", ".join(function_names) if function_names else "None",
-                content=content
-            )
+            {"Functions: " + ", ".join([f.get('name', '') for f in (functions or [])]) if functions else ""}
             
-            # Call LLM to generate summary
-            summary = self.llm_client.generate_text(prompt)
-            return summary.strip()
-        
+            Please provide a concise summary of what this file does and its main components.
+            Focus on the overall purpose, key functions/classes, and how it might fit into a larger codebase.
+            """
+            
+            response = self.llm_client.generate_text(prompt, max_tokens=500)
+            return response.strip()
+            
         except Exception as e:
-            self.logger.error("Error summarizing file %s: %s", file_data.get("path", "unknown"), str(e))
-            return f"Failed to generate summary: {str(e)}"
+            self.logger.error(f"Error summarizing file {file_path}: {str(e)}")
+            return f"Error: {str(e)}"
     
-    def summarize_repository(self, repo_name: str, parsed_files: List[Dict[str, Any]]) -> str:
+    def summarize_repository(self, parsed_files: List[Dict[str, Any]], repo_name: str = "Unknown Repository") -> str:
         """
         Generate a summary for an entire repository.
         
         Args:
-            repo_name: Name of the repository
             parsed_files: List of parsed file data
+            repo_name: Name of the repository (optional)
             
         Returns:
             str: Repository summary
@@ -150,7 +148,7 @@ class CodeSummarizer:
                 if "summary" in file and file["summary"]:
                     summary = file["summary"]
                 else:
-                    summary = self.summarize_file(file)
+                    summary = self.summarize_file(file["path"], file.get("content", ""), file.get("language", "Unknown"), file.get("functions", []))
                 
                 file_summaries.append(f"- {file['path']}: {summary}")
             

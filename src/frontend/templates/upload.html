@@ -26,7 +26,7 @@
             <h2>Upload Repository</h2>
             <p>Upload a repository to analyze and query using natural language.</p>
             
-            <form id="upload-form" action="/api/repos" method="POST" enctype="multipart/form-data" class="upload-form">
+            <form id="upload-form" action="/api/repos" method="POST" enctype="multipart/form-data" class="upload-form" onsubmit="return submitForm(event)">
                 <div class="form-group">
                     <label for="repo-type">Repository Type:</label>
                     <select id="repo-type" name="repo_type" required>
@@ -35,17 +35,34 @@
                         <option value="local">Local Path</option>
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="repo-name">Repository Name:</label>
+                    <input type="text" id="repo-name" name="name" required placeholder="Enter a name for this repository">
+                </div>
                 
-                <div id="source-input-group" class="form-group">
-                    <label for="source-input">GitHub URL:</label>
-                    <input type="text" id="source-input" name="source" placeholder="https://github.com/username/repository">
+                <div id="github-input-group" class="form-group">
+                    <label for="github-url">GitHub URL:</label>
+                    <input type="text" id="github-url" name="github_url" placeholder="https://github.com/username/repository">
                     <p class="help-text">Enter the URL of the GitHub repository you want to analyze.</p>
+                </div>
+
+                <div id="github-branch-group" class="form-group">
+                    <label for="github-branch">Branch (Optional):</label>
+                    <input type="text" id="github-branch" name="github_branch" placeholder="main">
+                    <p class="help-text">Specify a branch or leave empty for the default branch.</p>
                 </div>
                 
                 <div id="file-input-group" class="form-group">
                     <label for="file-input">ZIP File:</label>
-                    <input type="file" id="file-input" name="file" accept=".zip">
+                    <input type="file" id="file-input" name="zip_file" accept=".zip">
                     <p class="help-text">Upload a ZIP file containing your repository.</p>
+                </div>
+
+                <div id="local-input-group" class="form-group">
+                    <label for="local-path">Local Path:</label>
+                    <input type="text" id="local-path" name="local_path" placeholder="/path/to/local/repository">
+                    <p class="help-text">Enter the path to a local repository.</p>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Upload Repository</button>
