@@ -1,53 +1,50 @@
 """
-Main entry point for the RepoMind application.
-This module initializes and runs both the backend API and frontend web server.
+Main entry point for RepoMind.
+Initializes and starts the application server.
 """
 
-import argparse
-import asyncio
+import os
 import sys
-import uvicorn
+import logging
+import argparse
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
-# Add the parent directory to the path to allow imports
+# Add the parent directory to sys.path to make config importable
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from config import API_HOST, API_PORT, DEBUG
-from src.frontend.app import app as frontend_app
-from src.backend.api.routes import router as api_router
+# Import configuration
+from config import TEMP_DIR, STATIC_DIR, TEMPLATES_DIR, LOG_LEVEL
 
+# Import application components
+from src.frontend.app import app as frontend_app, templates
+from src.backend.api.app import app as backend_app
+from src.backend.database.mongo_client import MongoDBClient
 
-def parse_args():
-    """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="RepoMind: Repository Exploration and Query Assistant")
-    parser.add_argument(
-        "--host",
-        default=API_HOST,
-        help=f"Host address to bind the server to (default: {API_HOST})"
-    )
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=API_PORT,
-        help=f"Port to bind the server to (default: {API_PORT})"
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        default=DEBUG,
-        help="Run in debug mode (default: %(default)s)"
-    )
-    return parser.parse_args()
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, LOG_LEVEL),
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
+logger = logging.getLogger(__name__)
 
-async def main():
-    """Run the RepoMind application."""
-    args = parse_args()
+def create_app() -> FastAPI:
+    """
+    Create and configure the FastAPI application.
     
-    # Create a combined app with both frontend and API
-    app = FastAPI(title="RepoMind", description="Repository Exploration and Query Assistant")
+    Returns:
+        FastAPI: Configured FastAPI application
+    """
+    # Create main FastAPI app
+    app = FastAPI(
+        title="RepoMind",
+        description="Repository Exploration and Query Assistant",
+        version="1.0.0",
+    )
     
     # Configure CORS
     app.add_middleware(
@@ -58,29 +55,57 @@ async def main():
         allow_headers=["*"],
     )
     
-    # Mount the frontend app
+    # Include the API router directly instead of mounting
+    from src.backend.api.routes import router
+    app.include_router(router)
+    
+    # Mount frontend app
     app.mount("/", frontend_app)
     
-    # Include API routes
-    app.include_router(api_router)
+    return app
+
+def main():
+    """Initialize and start the application server."""
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="RepoMind Server")
+    parser.add_argument("--host", default="127.0.0.1", help="Host to bind to")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind to")
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    args = parser.parse_args()
     
-    # Start the server
-    config = uvicorn.Config(
-        app=app,
+    # Create temp directory
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    logger.info(f"Using temporary directory: {TEMP_DIR}")
+    
+    # Verify MongoDB connection
+    db_client = MongoDBClient()
+    conn_success = db_client.connect()
+    if conn_success:
+        logger.info("Successfully connected to MongoDB")
+    else:
+        logger.warning("Failed to connect to MongoDB. Some features will be unavailable.")
+    
+    # Initialize and start server
+    app = create_app()
+    
+    # Configure Uvicorn logging
+    log_config = uvicorn.config.LOGGING_CONFIG
+    log_config["formatters"]["access"]["fmt"] = "%(asctime)s - %(levelname)s - %(message)s"
+    log_config["formatters"]["default"]["fmt"] = "%(asctime)s - %(levelname)s - %(message)s"
+    
+    # Set log level based on debug mode
+    log_level = "debug" if args.debug else "info"
+    
+    logger.info(f"Starting server on {args.host}:{args.port} (debug={args.debug})")
+    
+    # Start Uvicorn server
+    uvicorn.run(
+        app,
         host=args.host,
         port=args.port,
-        reload=args.debug,
-        log_level="info" if args.debug else "error",
+        log_level=log_level,
+        log_config=log_config,
     )
-    server = uvicorn.Server(config)
-    
-    print(f"Starting RepoMind on http://{args.host}:{args.port}")
-    await server.serve()
-
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\nShutting down RepoMind...")
-        sys.exit(0) 
+    main() 

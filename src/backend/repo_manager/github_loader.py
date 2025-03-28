@@ -11,148 +11,137 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 import git
 from git.exc import GitCommandError, InvalidGitRepositoryError
+import requests
+from github import Github
+from github.GithubException import GithubException
 
 from config import TEMP_DIR
-from src.backend.repo_manager.repo_loader import RepoLoader, RepoLoaderFactory
+# Fix circular import
+# from src.backend.repo_manager.repo_loader import RepoLoader, RepoLoaderFactory
+from src.backend.repo_manager.repo_loader_factory import RepoLoaderFactory
 
 
-class GitHubLoader(RepoLoader):
-    """Loader for GitHub repositories."""
+# Base class definition to avoid circular import
+class BaseRepoLoader:
+    """Base class for repository loaders."""
     
     def __init__(self):
-        """Initialize the GitHub loader."""
-        super().__init__()
+        """Initialize the base loader."""
         self.logger = logging.getLogger(__name__)
     
-    def validate(self, source: str) -> bool:
+    def _is_binary_file(self, file_path: str) -> bool:
         """
-        Validate a GitHub URL.
+        Check if a file is binary.
         
         Args:
-            source: GitHub repository URL
+            file_path: Path to the file
             
         Returns:
-            bool: True if valid, False otherwise
+            bool: True if binary, False otherwise
         """
-        # Simple pattern for GitHub URLs
-        pattern = r'^https?://github\.com/[^/]+/[^/]+/?.*$'
-        return bool(re.match(pattern, source))
+        # Common binary file extensions
+        binary_extensions = {
+            '.pyc', '.so', '.o', '.a', '.lib', '.dll', '.exe', '.bin',
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.ico', '.tif', '.tiff',
+            '.zip', '.tar', '.gz', '.bz2', '.xz', '.rar', '.7z',
+            '.pdf', '.doc', '.docx', '.ppt', '.pptx', '.xls', '.xlsx',
+            '.db', '.sqlite', '.db3',
+        }
+        
+        _, ext = os.path.splitext(file_path.lower())
+        return ext in binary_extensions
+
+
+@RepoLoaderFactory.register("github")
+class GitHubLoader:
+    """
+    GitHub repository loader
+    """
     
-    def parse_github_url(self, url: str) -> Tuple[str, str, Optional[str]]:
+    def __init__(self):
         """
-        Parse a GitHub URL into owner, repo name, and optional branch.
+        Initialize the GitHub loader
+        """
+        self.logger = logging.getLogger(__name__)
+    
+    def validate(self, url: str) -> bool:
+        """
+        Validate a GitHub URL
         
         Args:
             url: GitHub repository URL
             
         Returns:
-            tuple: (owner, repo_name, branch)
+            bool: True if valid, False otherwise
         """
-        # Extract owner and repo name
-        pattern = r'github\.com/([^/]+)/([^/]+)/?.*'
-        match = re.search(pattern, url)
-        
-        if not match:
-            raise ValueError(f"Invalid GitHub URL: {url}")
-        
-        owner, repo = match.groups()
-        
-        # Extract branch if specified in the URL
-        branch_pattern = r'github\.com/[^/]+/[^/]+/tree/([^/]+)'
-        branch_match = re.search(branch_pattern, url)
-        branch = branch_match.group(1) if branch_match else None
-        
-        # Remove .git suffix if present
-        if repo.endswith('.git'):
-            repo = repo[:-4]
-        
-        return owner, repo, branch
+        try:
+            if not url.startswith(("http://github.com/", "https://github.com/")):
+                return False
+                
+            # Extract owner and repo name
+            parts = url.strip("/").split("/")
+            if len(parts) < 5:
+                return False
+                
+            owner = parts[-2]
+            repo = parts[-1]
+            
+            # Validate that repo exists
+            response = requests.head(f"https://github.com/{owner}/{repo}")
+            return response.status_code == 200
+            
+        except Exception as e:
+            self.logger.error(f"Error validating GitHub URL: {str(e)}")
+            return False
     
-    def load(self, source: str) -> Dict[str, Any]:
+    def load(self, url: str, target_dir: str = None) -> Dict[str, Any]:
         """
-        Clone a GitHub repository and load its contents.
+        Load a GitHub repository
         
         Args:
-            source: GitHub repository URL
+            url: GitHub repository URL
+            target_dir: Target directory for cloning
             
         Returns:
-            dict: Repository metadata and file contents
+            dict: Repository data
         """
-        if not self.validate(source):
-            raise ValueError(f"Invalid GitHub URL: {source}")
-        
-        owner, repo_name, branch = self.parse_github_url(source)
-        
-        # Create a unique directory name
-        repo_dir = TEMP_DIR / f"{owner}_{repo_name}_{os.urandom(4).hex()}"
-        repo_dir.mkdir(parents=True, exist_ok=True)
-        
-        self.logger.info("Cloning repository %s/%s to %s", owner, repo_name, repo_dir)
-        
         try:
-            # Clone the repository
-            git_repo = git.Repo.clone_from(source, repo_dir)
+            self.logger.info(f"Loading GitHub repository from {url}")
             
-            # Checkout specific branch if provided
-            if branch:
-                git_repo.git.checkout(branch)
+            # Extract owner and repo name
+            parts = url.strip("/").split("/")
+            owner = parts[-2]
+            repo_name = parts[-1]
+            
+            # Create temporary directory if not provided
+            if not target_dir:
+                target_dir = tempfile.mkdtemp()
+            
+            # Clone repository
+            clone_url = f"https://github.com/{owner}/{repo_name}.git"
+            os.system(f"git clone {clone_url} {target_dir}")
             
             # Get repository info
-            repo_info = {
+            g = Github()
+            repo = g.get_repo(f"{owner}/{repo_name}")
+            
+            # Build repository data
+            repo_data = {
                 "name": repo_name,
-                "source": source,
-                "source_type": "github",
+                "type": "github",
+                "url": url,
+                "local_path": target_dir,
                 "owner": owner,
-                "files": {}
+                "description": repo.description,
+                "stars": repo.stargazers_count,
+                "language": repo.language
             }
             
-            # Process all files in the repository
-            for root, _, files in os.walk(repo_dir):
-                for file in files:
-                    # Skip .git directory
-                    if ".git" in Path(root).parts:
-                        continue
-                    
-                    file_path = os.path.join(root, file)
-                    rel_path = os.path.relpath(file_path, repo_dir)
-                    
-                    # Skip binary files
-                    if self._is_binary_file(rel_path):
-                        continue
-                    
-                    # Get file size
-                    file_size = os.path.getsize(file_path)
-                    
-                    # Skip large files
-                    if file_size > 1024 * 1024:  # 1MB
-                        self.logger.warning("Skipping large file: %s (%d bytes)", rel_path, file_size)
-                        continue
-                    
-                    try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            content = f.read()
-                            repo_info["files"][rel_path] = {
-                                "content": content,
-                                "size_bytes": file_size,
-                                "line_count": content.count('\n') + 1
-                            }
-                    except UnicodeDecodeError:
-                        # Skip files that can't be decoded as text
-                        self.logger.warning("Skipping binary file: %s", rel_path)
-                        continue
+            return repo_data
             
-            return repo_info
-        
-        except (GitCommandError, InvalidGitRepositoryError) as e:
-            self.logger.error("Error cloning repository: %s", str(e))
+        except GithubException as e:
+            self.logger.error(f"GitHub API error: {str(e)}")
             raise
-        finally:
-            # Clean up the temporary directory
-            try:
-                git.rmtree(repo_dir)
-            except Exception as e:
-                self.logger.error("Error cleaning up repository directory: %s", str(e))
-
-
-# Register the loader with the factory
-RepoLoaderFactory.register("github", GitHubLoader) 
+        except Exception as e:
+            self.logger.error(f"Error loading GitHub repository: {str(e)}")
+            raise 

@@ -3,8 +3,13 @@ API application for RepoMind.
 Initializes and configures the FastAPI API.
 """
 
+import sys
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+# Add the parent directory to sys.path to make config importable
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent.parent))
 
 from src.backend.api.routes import router
 
@@ -35,6 +40,10 @@ async def root():
         "name": "RepoMind API",
         "version": "1.0.0",
         "documentation": "/docs",
+        "endpoints": [
+            "/api/repos",
+            "/api/repos/{repo_id}"
+        ]
     }
 
 
